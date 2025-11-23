@@ -5,11 +5,11 @@ import { Session } from '@supabase/supabase-js';
 
 // --- IMPORTS ---
 import Landing from './pages/Landing';
-import Auth from './components/Auth';
+import Login from './pages/Login'; // On utilise le nouveau fichier Login
 import Dashboard from './components/Dashboard';
 import Layout from './components/Layout';
 
-// Les pages de ton application (Indispensables !)
+// Pages de l'application
 import PropertiesPage from './pages/PropertiesPage';
 import CalendarPage from './pages/CalendarPage';
 import OwnersPage from './pages/OwnersPage';
@@ -38,22 +38,16 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
+  if (loading) return null;
 
   return (
     <Router>
       <Routes>
-        {/* 1. LA VITRINE (Si pas connecté -> Landing, Si connecté -> Dashboard) */}
-        <Route path="/" element={session ? <Navigate to="/dashboard" /> : <Landing />} />
+        {/* 1. LA VITRINE (Accessible à tous, tout le temps) */}
+        <Route path="/" element={<Landing />} />
         
-        {/* 2. LA PAGE DE CONNEXION */}
-        <Route path="/login" element={session ? <Navigate to="/dashboard" /> : <Auth />} />
+        {/* 2. LA PAGE DE CONNEXION (Si déjà connecté -> Dashboard) */}
+        <Route path="/login" element={session ? <Navigate to="/dashboard" /> : <Login />} />
 
         {/* 3. L'APPLICATION (Protégée) */}
         {session && (
@@ -72,7 +66,7 @@ function App() {
           </Route>
         )}
 
-        {/* Redirection par défaut */}
+        {/* Redirection par défaut vers la vitrine */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
