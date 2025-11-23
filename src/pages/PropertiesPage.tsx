@@ -1,10 +1,7 @@
 import React from 'react';
+import PropertiesManager from '../components/Admin/PropertiesManager'; // Assurez-vous que ce chemin est correct
 
 export default function PropertiesPage() {
-  return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Mes Logements</h1>
-      <p>Page en construction...</p>
-    </div>
-  );
+  // Le composant PropertiesManager contient toute la logique de gestion des logements.
+  return <PropertiesManager />;
 }
