@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Building2, Mail, Lock, Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -10,6 +10,9 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSignUp, setIsSignUp] = useState(false);
+
+  // C'est ici que le pont se fait !
+  const VITRINE_URL = "https://locasmart.net";
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +26,7 @@ export default function Login() {
       } else {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate('/dashboard'); // Redirection après connexion réussie
+        navigate('/dashboard');
       }
     } catch (error: any) {
       setError(error.message);
@@ -35,11 +38,17 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-100">
+        
+        {/* LE BOUTON RETOUR CORRIGÉ */}
         <div className="p-4">
-          <Link to="/" className="text-slate-500 hover:text-slate-800 flex items-center gap-2 text-sm font-medium">
+          <a 
+            href={VITRINE_URL} 
+            className="text-slate-500 hover:text-slate-800 flex items-center gap-2 text-sm font-medium transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" /> Retour à l'accueil
-          </Link>
+          </a>
         </div>
+
         <div className="px-8 pb-8 text-center">
           <div className="bg-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg shadow-blue-600/20">
             <Building2 className="h-8 w-8 text-white" />
