@@ -3,16 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-// --- IMPORTS MINIMAUX POUR LE DASHBOARD (Sécurité Max) ---
+// --- IMPORTS MINIMAUX POUR LE MONOLITHE (Plus de Layout) ---
 import Login from './pages/Login';
-import Dashboard from './components/Admin/AdminDashboard'; 
-import Layout from './components/Shared/Layout'; // Assurez-vous que Layout est bien dans Shared/
-
-// Imports temporairement inutilisés pour éviter les erreurs de compilation
-// import Landing from './pages/Landing';
-// import PropertiesPage from './pages/PropertiesPage';
-// import OwnersPage from './pages/OwnersPage';
-// ... et tous les autres modules ...
+import Dashboard from './components/Admin/AdminDashboard'; // Le composant qui contient TOUTES les tabs
+// Imports des autres pages ne sont plus nécessaires ici car Dashboard les gère
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -46,14 +40,10 @@ function App() {
         <Route path="/" element={session ? <Navigate to="/dashboard" /> : <Login />} />
         <Route path="/login" element={session ? <Navigate to="/dashboard" /> : <Login />} />
 
-        {/* APPLICATION PROTÉGÉE : SEUL LE DASHBOARD EST ACTIF */}
+        {/* APPLICATION PROTÉGÉE : TOUT LE SAAS EST DANS LE DASHBOARD */}
         {session && (
-          <Route element={<Layout />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            
-            {/* Si l'utilisateur clique sur un lien non défini, il revient au Dashboard */}
-            <Route path="*" element={<Navigate to="/dashboard" />} />
-          </Route>
+          // Le composant Layout/Sidebar est retiré. On utilise le Dashboard comme page entière.
+          <Route path="/dashboard/*" element={<Dashboard />} /> 
         )}
 
         {/* Fallback vers la connexion */}
