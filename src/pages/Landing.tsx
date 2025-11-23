@@ -14,7 +14,7 @@ import {
 export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
-  // L'adresse de ton application
+  // C'EST ICI LE LIEN VERS TON SAAS
   const APP_URL = "https://app.locasmart.net";
 
   return (
@@ -34,6 +34,8 @@ export default function Landing() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Fonctionnalités</a>
               <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Tarifs</a>
+              
+              {/* BOUTON SE CONNECTER -> VA VERS L'APP */}
               <a href={APP_URL} className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
                 Se connecter
               </a>
@@ -62,7 +64,7 @@ export default function Landing() {
         )}
       </nav>
 
-      {/* --- HERO --- */}
+      {/* --- HERO (SLOGANS) --- */}
       <section className="relative pt-20 pb-32 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 text-blue-700 text-sm font-medium mb-8 border border-blue-100">

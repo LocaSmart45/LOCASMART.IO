@@ -3,10 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-// --- IMPORTS MINIMAUX POUR LE MONOLITHE (Plus de Layout) ---
+// --- IMPORTS VITAux (Ajout de Landing) ---
 import Login from './pages/Login';
-import Dashboard from './components/Admin/AdminDashboard'; // Le composant qui contient TOUTES les tabs
-// Imports des autres pages ne sont plus nécessaires ici car Dashboard les gère
+import Dashboard from './components/Admin/AdminDashboard'; 
+import Landing from './pages/Landing'; // La Vitrine
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -25,6 +25,9 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // NOUVEAU : Logique de détection du sous-domaine 'app.'
+  const isAppDomain = typeof window !== 'undefined' && window.location.hostname.startsWith('app');
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -36,17 +39,25 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* L'ACCUEIL est la page de connexion par défaut */}
-        <Route path="/" element={session ? <Navigate to="/dashboard" /> : <Login />} />
+        {/* 1. ROUTE RACINE (/) : Gère le Pont Vitrine/SaaS */}
+        <Route 
+          path="/" 
+          element={
+            // Si l'utilisateur est sur app.locasmart.net : on le met au Login/Dashboard.
+            // Si l'utilisateur est sur locasmart.net : on lui montre la Vitrine (Landing Page).
+            isAppDomain ? (session ? <Navigate to="/dashboard" /> : <Login />) : <Landing />
+          } 
+        />
+        
+        {/* 2. ROUTE LOGIN (/login) : Pour la navigation interne ou directe sur l'App */}
         <Route path="/login" element={session ? <Navigate to="/dashboard" /> : <Login />} />
 
-        {/* APPLICATION PROTÉGÉE : TOUT LE SAAS EST DANS LE DASHBOARD */}
+        {/* 3. APPLICATION PROTÉGÉE */}
         {session && (
-          // Le composant Layout/Sidebar est retiré. On utilise le Dashboard comme page entière.
           <Route path="/dashboard/*" element={<Dashboard />} /> 
         )}
 
-        {/* Fallback vers la connexion */}
+        {/* 4. FALLBACK */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
