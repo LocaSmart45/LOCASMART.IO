@@ -447,16 +447,3 @@ const PlatformRevenueItem: React.FC<{ platform: string, revenue: number, commiss
     );
   };
 
-// Composant StatCard (version refactorisée)
-const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, color, description }) => (
-  <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-    <div className="flex items-center justify-between mb-4">
-      <p className="text-sm font-medium uppercase text-slate-500">{title}</p>
-      <div className={`p-3 rounded-full ${StatColors[color]}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-    </div>
-    <p className="text-4xl font-extrabold text-slate-900 mb-1 leading-none">{value}</p>
-    {description && <p className="text-xs text-slate-500">{description}</p>}
-  </div>
-);
