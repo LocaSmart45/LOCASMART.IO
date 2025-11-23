@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { LayoutDashboard, Users, Building2, Wrench, MessageSquare, LogOut, Euro, Calendar, RefreshCw, FileText, CreditCard, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Wrench, MessageSquare, LogOut, Euro, Calendar, RefreshCw, FileText, CreditCard, Settings, Loader2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase, Property, Reservation, Intervention, Profile } from '../../lib/supabase';
+
+// Import des managers de fonctionnalités (à s'assurer que les chemins sont corrects)
 import PropertiesManager from './PropertiesManager';
 import InterventionsManager from './InterventionsManager';
 import OwnersManager from './OwnersManager';
@@ -27,10 +29,13 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Note: Utiliser 'Promise.all' pour charger les données simultanément est excellent pour la performance !
     loadData();
   }, []);
 
   async function loadData() {
+    // Cette fonction est appelée par les sous-composants après une modification (ajout/suppression).
+    setLoading(true);
     try {
       const [propertiesData, reservationsData, interventionsData, ownersData] = await Promise.all([
         supabase.from('properties').select('*').order('created_at', { ascending: false }),
@@ -66,38 +71,38 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-neutral flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-neutral-dark font-body">Chargement...</p>
+          <Loader2 className="h-8 w-8 text-blue-600 animate-spin mx-auto" />
+          <p className="mt-4 text-slate-600 font-medium">Chargement des données...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-neutral">
-      <nav className="bg-white border-b border-slate-200 shadow-sm">
+    <div className="min-h-screen bg-slate-50 font-sans">
+      
+      {/* --- BANDEAU SUPÉRIEUR (Header) --- */}
+      <nav className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <img
-                src="/generated-image (1) copy.png"
-                alt="LocaSmart"
-                className="h-10"
-              />
-              <div className="hidden md:block">
-                <p className="text-xs text-slate-500 uppercase tracking-wide font-semibold">Espace Admin</p>
-              </div>
+              <Building2 className="h-6 w-6 text-blue-600" />
+              <span className="text-xl font-bold tracking-tight text-slate-900">LocaSmart</span>
+              <p className="hidden md:block text-xs text-slate-500 uppercase tracking-wide font-semibold ml-6">
+                Espace Administrateur
+              </p>
             </div>
+            
             <div className="flex items-center space-x-4">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-slate-800">{profile?.full_name}</p>
-                <p className="text-xs text-slate-500">Administrateur</p>
+                <p className="text-sm font-semibold text-slate-800">{profile?.full_name || 'Super Admin'}</p>
+                <p className="text-xs text-blue-600 font-medium">{profile?.role}</p>
               </div>
               <button
                 onClick={() => signOut()}
-                className="flex items-center space-x-2 px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-all"
+                className="flex items-center space-x-2 px-4 py-2 text-red-600 border border-red-100 bg-red-50 hover:bg-red-100 rounded-xl transition-all"
                 title="Déconnexion"
               >
                 <LogOut className="w-4 h-4" />
@@ -109,27 +114,30 @@ export default function AdminDashboard() {
       </nav>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex flex-wrap gap-3 mb-8">
+        
+        {/* --- Onglets de Navigation --- */}
+        <div className="flex flex-wrap gap-3 mb-8 border-b border-slate-200 pb-4">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center space-x-2 px-5 py-2.5 rounded-button font-medium transition-all ${
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full font-medium text-sm transition-all shadow-sm ${
                   activeTab === tab.id
-                    ? 'bg-primary text-white shadow-button'
-                    : 'bg-white text-neutral-dark hover:bg-gray-50 shadow-sm'
+                    ? 'bg-blue-600 text-white shadow-blue-600/30'
+                    : 'bg-white text-slate-700 hover:bg-slate-100'
                 }`}
               >
-                <Icon className="w-5 h-5" strokeWidth={2} />
+                <Icon className="w-4 h-4" strokeWidth={2} />
                 <span>{tab.label}</span>
               </button>
             );
           })}
         </div>
 
-        <div>
+        {/* --- Contenu de l'Onglet Actif --- */}
+        <div className="bg-white p-6 rounded-2xl shadow-lg border border-slate-100">
           {activeTab === 'overview' && (
             <AdminStats
               properties={properties}
@@ -142,7 +150,8 @@ export default function AdminDashboard() {
           {activeTab === 'owners' && (
             <OwnersManager owners={owners} properties={properties} onUpdate={loadData} />
           )}
-
+          
+          {/* ... [Garder le reste des conditions (activeTab === 'properties', etc.) ici] ... */}
           {activeTab === 'properties' && (
             <PropertiesManager properties={properties} owners={owners} reservations={reservations} onUpdate={loadData} />
           )}
@@ -162,7 +171,7 @@ export default function AdminDashboard() {
 
           {activeTab === 'calendar' && (
             <div className="space-y-6">
-              <div>
+              <div className="pb-4 border-b border-slate-100">
                 <h2 className="text-2xl font-bold text-slate-800 mb-1">Calendrier des Réservations</h2>
                 <p className="text-slate-600">Vue d'ensemble de toutes les réservations</p>
               </div>
@@ -201,8 +210,14 @@ export default function AdminDashboard() {
           {activeTab === 'messages' && (
             <MessagesPanel />
           )}
+
         </div>
       </div>
     </div>
   );
 }
+
+// Composant pour l'affichage des statistiques de la Vue d'ensemble
+// Ceci est la version simplifiée pour le besoin (AdminStats)
+// Nous allons la placer dans AdminStats.tsx
+// (Vous devez vous assurer que le fichier AdminStats.tsx existe)
