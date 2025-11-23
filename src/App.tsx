@@ -3,13 +3,15 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-// --- IMPORTS ---
+// PAGES
 import Landing from './pages/Landing';
-import Login from './pages/Login'; // On utilise le nouveau fichier Login
-import Dashboard from './components/Dashboard';
-import Layout from './components/Layout';
+import Login from './pages/Login';
 
-// Pages de l'application
+// COMPOSANTS (Chemins corrigés d'après ton projet)
+import Dashboard from './components/Admin/Dashboard';
+import Layout from './components/Shared/Layout';
+
+// PAGES DE L'APP
 import PropertiesPage from './pages/PropertiesPage';
 import CalendarPage from './pages/CalendarPage';
 import OwnersPage from './pages/OwnersPage';
@@ -38,18 +40,32 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) return null;
+  // Détection du sous-domaine "app"
+  const isAppDomain = window.location.hostname.startsWith('app');
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <Router>
       <Routes>
-        {/* 1. LA VITRINE (Accessible à tous, tout le temps) */}
-        <Route path="/" element={<Landing />} />
-        
-        {/* 2. LA PAGE DE CONNEXION (Si déjà connecté -> Dashboard) */}
+        {/* LOGIQUE INTELLIGENTE :
+           - Si je suis sur "locasmart.net" -> J'affiche la Vitrine (Landing).
+           - Si je suis sur "app.locasmart.net" -> J'affiche le Login (ou Dashboard si connecté).
+        */}
+        <Route path="/" element={ 
+           isAppDomain ? (session ? <Navigate to="/dashboard" /> : <Login />) : <Landing /> 
+        } />
+
+        {/* Route Login explicite */}
         <Route path="/login" element={session ? <Navigate to="/dashboard" /> : <Login />} />
 
-        {/* 3. L'APPLICATION (Protégée) */}
+        {/* L'APPLICATION (Uniquement si connecté) */}
         {session && (
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -66,7 +82,7 @@ function App() {
           </Route>
         )}
 
-        {/* Redirection par défaut vers la vitrine */}
+        {/* Redirection par défaut */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>

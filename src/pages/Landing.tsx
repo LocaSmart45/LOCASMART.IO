@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { 
   Building2, 
   CheckCircle2, 
@@ -14,6 +13,9 @@ import {
 
 export default function Landing() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
+  // L'adresse de ton application
+  const APP_URL = "https://app.locasmart.net";
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
@@ -32,15 +34,15 @@ export default function Landing() {
             <div className="hidden md:flex items-center gap-8">
               <a href="#features" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Fonctionnalités</a>
               <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">Tarifs</a>
-              <Link to="/login" className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
+              <a href={APP_URL} className="text-sm font-medium text-slate-600 hover:text-blue-600 transition-colors">
                 Se connecter
-              </Link>
-              <Link 
-                to="/login" 
+              </a>
+              <a 
+                href={APP_URL} 
                 className="bg-blue-600 text-white px-5 py-2.5 rounded-full text-sm font-semibold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
               >
                 Essai gratuit 14 jours
-              </Link>
+              </a>
             </div>
 
             <div className="md:hidden">
@@ -55,7 +57,7 @@ export default function Landing() {
           <div className="md:hidden bg-white border-t border-slate-100 p-4 space-y-4">
             <a href="#features" className="block text-slate-600 font-medium" onClick={() => setIsMenuOpen(false)}>Fonctionnalités</a>
             <a href="#pricing" className="block text-slate-600 font-medium" onClick={() => setIsMenuOpen(false)}>Tarifs</a>
-            <Link to="/login" className="block text-slate-600 font-medium">Se connecter</Link>
+            <a href={APP_URL} className="block text-slate-600 font-medium">Se connecter</a>
           </div>
         )}
       </nav>
@@ -81,12 +83,12 @@ export default function Landing() {
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4 mb-16">
-            <Link 
-              to="/login" 
+            <a 
+              href={APP_URL} 
               className="bg-blue-600 text-white px-8 py-4 rounded-full text-lg font-bold hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2"
             >
               Commencer gratuitement <ArrowRight className="h-5 w-5" />
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -119,12 +121,12 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">29€ / mois</h2>
           <p className="text-slate-400 text-xl mb-8">Tout illimité. Sans engagement.</p>
-          <Link 
-            to="/login" 
+          <a 
+            href={APP_URL} 
             className="inline-block bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-12 rounded-full transition-colors"
           >
             Essayer 14 jours gratuitement
-          </Link>
+          </a>
           <p className="text-slate-500 text-sm mt-4">Aucune carte bancaire requise pour l'essai.</p>
         </div>
       </section>
@@ -142,7 +144,7 @@ export default function Landing() {
 function FeatureCard({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) {
   return (
     <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-      <div className="mb-6">{icon}</div>
+      <div className="mb-6 text-blue-600">{icon}</div>
       <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
       <p className="text-slate-600">{desc}</p>
     </div>
