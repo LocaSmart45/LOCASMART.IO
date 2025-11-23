@@ -3,21 +3,14 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { supabase } from './lib/supabase';
 import { Session } from '@supabase/supabase-js';
 
-// PAGES PUBLIQUES
+// --- PAGES EXISTANTES (SÛR À 100%) ---
 import Landing from './pages/Landing';
 import Login from './pages/Login';
+import PropertiesPage from './pages/PropertiesPage'; // On vient de le créer
 
-// COMPOSANTS ADMIN (D'après ta capture d'écran)
-// C'EST ICI QUE C'ÉTAIT FAUX AVANT :
-import Dashboard from './components/Admin/AdminDashboard'; 
-
-// LAYOUT (D'après l'étape 1 qu'on vient de faire)
-import Layout from './components/Shared/Layout';
-
-// PAGES (Assure-toi que ces fichiers existent dans src/pages/, sinon commente-les)
-import PropertiesPage from './pages/PropertiesPage';
-// ... Tu pourras décommenter les autres pages quand tu seras sûr qu'elles existent
-// Pour l'instant, concentrons-nous sur le Dashboard pour que le build passe.
+// --- COMPOSANTS ---
+import Dashboard from './components/Admin/AdminDashboard'; // Corrigé étape d'avant
+import Layout from './components/Shared/Layout'; // Corrigé étape d'avant
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -45,23 +38,22 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Route par défaut (Vitrine ou Login selon le domaine) */}
+        {/* Vitrine ou Login */}
         <Route path="/" element={ 
            isAppDomain ? (session ? <Navigate to="/dashboard" /> : <Login />) : <Landing /> 
         } />
 
-        {/* Login explicite */}
         <Route path="/login" element={session ? <Navigate to="/dashboard" /> : <Login />} />
 
-        {/* Dashboard Protégé */}
+        {/* App Protégée */}
         {session && (
           <Route element={<Layout />}>
-            {/* Ici on appelle le composant AdminDashboard qu'on a importé sous le nom 'Dashboard' */}
             <Route path="/dashboard" element={<Dashboard />} />
-            
-            {/* J'ai commenté les autres routes pour l'instant pour garantir que le build passe.
-                Décommente-les une par une quand tu es sûr que les fichiers existent dans src/pages */}
             <Route path="/properties" element={<PropertiesPage />} />
+            
+            {/* J'ai désactivé les autres pages pour l'instant pour que le Build passe au vert.
+                Tu pourras les réactiver une par une quand tu auras créé les fichiers. */}
+            <Route path="*" element={<Dashboard />} /> 
           </Route>
         )}
 
