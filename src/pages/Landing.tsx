@@ -469,7 +469,7 @@ export default function Landing() {
                     <div>
                       <p className="font-semibold mb-1">Gestion au quotidien</p>
                       <p className="text-slate-300">
-                        Nous gérons les voyageurs, le ménage, les encaissements et vous reverseons
+                        Nous gérons les voyageurs, le ménage, les encaissements et vos plateformes reversent
                         vos revenus, avec un reporting détaillé dans l’espace propriétaire.
                       </p>
                     </div>
@@ -608,7 +608,7 @@ export default function Landing() {
             <div className="space-y-5 text-sm">
               <FaqItem
                 question="L’essai du logiciel est-il vraiment sans engagement ?"
-                answer="Oui. Vous créez votre compte, testez LocaSmart pendant 14 jours et vous ne payez rien si vous décidez d’arrêter. Aucune carte bancaire n’est demandée à l’inscription."
+                answer="Oui. Vous créez votre compte, testez LocaSmart pendant 14 jours et vous ne payez rien si vous décidez d’arrêter."
               />
               <FaqItem
                 question="Sur quels canaux diffusez-vous les annonces en gestion complète ?"
