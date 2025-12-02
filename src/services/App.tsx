@@ -1,16 +1,17 @@
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
-import { supabase } from "./lib/supabase";
+import { supabase } from "../lib/supabase";
 import { Session } from "@supabase/supabase-js";
 
-import Login from "./pages/Login";
-import Dashboard from "./components/Admin/AdminDashboard";
-import PrestataireTaskPage from "./pages/PrestataireTaskPage";
+import Login from "../pages/Login";
+import Landing from "../pages/Landing";
+import Dashboard from "../components/Admin/AdminDashboard";
+import PrestataireTaskPage from "../pages/PrestataireTaskPage";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -31,6 +32,9 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, []);
 
+  // En dev : on force le mode "app"
+  const isAppDomain = true;
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -42,25 +46,33 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        {/* ⭐ Route publique prestataire, JAMAIS PROTÉGÉE */}
+        {/* ⭐ Route publique prestataire */}
         <Route path="/prestataire" element={<PrestataireTaskPage />} />
 
-        {/* Login */}
+        {/* Accueil : login si app, landing sinon */}
+        <Route
+          path="/"
+          element={
+            isAppDomain
+              ? session
+                ? <Navigate to="/dashboard" />
+                : <Login />
+              : <Landing />
+          }
+        />
+
+        {/* Login direct */}
         <Route
           path="/login"
           element={session ? <Navigate to="/dashboard" /> : <Login />}
         />
 
         {/* Dashboard protégé */}
-        <Route
-          path="/dashboard/*"
-          element={session ? <Dashboard /> : <Navigate to="/login" />}
-        />
+        {session && (
+          <Route path="/dashboard/*" element={<Dashboard />} />
+        )}
 
-        {/* Racine → envoie vers /login */}
-        <Route path="/" element={<Navigate to="/login" />} />
-
-        {/* Fallback → pour debug on renvoie vers /prestataire */}
+        {/* Fallback : on renvoie vers /prestataire pour tester plus vite */}
         <Route path="*" element={<Navigate to="/prestataire" />} />
       </Routes>
     </Router>
