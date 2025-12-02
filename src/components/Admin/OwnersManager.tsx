@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Plus, Mail, Phone, Home, Loader2, AlertCircle } from 'lucide-react';
+import { Users, Plus, Mail, Phone, Loader2, AlertCircle } from 'lucide-react';
 import { Profile, Property, supabase } from '../../lib/supabase';
 
 interface OwnersManagerProps {
@@ -13,7 +13,7 @@ export default function OwnersManager({ owners, properties, onUpdate }: OwnersMa
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    full_name: '',
+    full_name: '', // Utilisé uniquement pour le formulaire
     phone: '',
   });
   const [error, setError] = useState('');
@@ -25,84 +25,79 @@ export default function OwnersManager({ owners, properties, onUpdate }: OwnersMa
     setLoading(true);
 
     try {
-      // 1. Récupérer l'admin connecté pour la sécurité
+      // 1. Récupérer l'admin connecté
       const { data: { user: adminUser } } = await supabase.auth.getUser();
-      if (!adminUser) throw new Error("Vous devez être connecté pour créer un propriétaire.");
+      if (!adminUser) throw new Error("Vous devez être connecté.");
 
-      // 2. Vérifier si le propriétaire existe déjà
-      const { data: existingProfile } = await supabase
+      // 2. RECUPÉRER L'ID DE VOTRE CONCIERGERIE
+      // Indispensable car votre table 'profiles' a une colonne 'conciergerie_id' obligatoire
+      const { data: adminProfile, error: adminProfileError } = await supabase
         .from('profiles')
-        .select('id, email, role')
-        .eq('email', formData.email)
-        .maybeSingle();
+        .select('conciergerie_id')
+        .eq('id', adminUser.id)
+        .single();
 
-      if (existingProfile) {
-        if (existingProfile.role === 'owner') {
-          throw new Error('Ce propriétaire existe déjà dans votre base.');
-        } else {
-          throw new Error('Cet email est déjà utilisé par un autre utilisateur.');
-        }
+      if (adminProfileError || !adminProfile?.conciergerie_id) {
+        console.error("Erreur profil admin:", adminProfileError);
+        throw new Error("Impossible de trouver votre conciergerie. Contactez le support.");
       }
 
-      // 3. Créer le compte d'authentification (Auth)
+      // 3. Créer le compte utilisateur (Authentification)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
           data: {
-            full_name: formData.full_name,
-            role: 'owner' // Métadonnée importante
+            nom: formData.full_name, // On enregistre le nom dans les métadonnées
+            role: 'owner'
           }
         }
       });
 
-      if (authError) {
-        if (authError.message.includes('User already registered')) {
-          throw new Error('Cet email est déjà enregistré.');
-        }
-        throw authError;
-      }
+      if (authError) throw authError;
 
       if (authData.user) {
-        // 4. Insérer le profil avec le lien de sécurité (managed_by)
+        // 4. Créer le profil dans la base de données
+        // ATTENTION : On utilise ici UNIQUEMENT les colonnes qui existent dans votre table SQL
         const { error: profileError } = await supabase
           .from('profiles')
-          .insert([{
-            id: authData.user.id,
-            email: formData.email,
-            full_name: formData.full_name,
-            phone: formData.phone,
-            role: 'owner',
-            managed_by: adminUser.id // <--- LA CLÉ DE SÉCURITÉ ESSENTIELLE
-          }]);
+          .insert([
+            {
+              id: authData.user.id,              // ID unique
+              email: formData.email,             // Email
+              nom: formData.full_name,           // CORRECTION : On utilise 'nom', pas 'full_name'
+              role: 'owner',                     // Rôle
+              managed_by: adminUser.id,          // Lié à vous (l'admin)
+              conciergerie_id: adminProfile.conciergerie_id, // Lié à votre agence (OBLIGATOIRE)
+              active: true                       // Actif par défaut
+            }
+          ]);
 
-        if (profileError) {
-          // Si l'insertion échoue (ex: trigger automatique qui a déjà créé le profil), on tente un update
-          // C'est une sécurité supplémentaire
-          const { error: updateError } = await supabase
-            .from('profiles')
-            .update({
-              full_name: formData.full_name,
-              phone: formData.phone,
-              role: 'owner',
-              managed_by: adminUser.id
-            })
-            .eq('id', authData.user.id);
-            
-          if (updateError) throw profileError; // On lance l'erreur originale si l'update échoue aussi
-        }
+        if (profileError) throw profileError;
 
+        // Succès !
         setFormData({ email: '', password: '', full_name: '', phone: '' });
         setShowForm(false);
-        onUpdate(); // Rafraîchir la liste
+        onUpdate();
       }
     } catch (err: any) {
-      console.error(err);
-      setError(err.message || 'Une erreur est survenue');
+      console.error("Erreur création:", err);
+      // Message d'erreur plus clair pour l'utilisateur
+      if (err.message?.includes('conciergerie_id')) {
+        setError("Erreur technique : ID de conciergerie manquant.");
+      } else {
+        setError(err.message || 'Une erreur est survenue lors de la création.');
+      }
     } finally {
       setLoading(false);
     }
   }
+
+  // Fonction pour afficher le nom correctement dans la liste
+  // Gère le cas où la colonne s'appelle 'nom' ou 'full_name'
+  const getDisplayName = (owner: any) => {
+    return owner.nom || owner.full_name || owner.email;
+  };
 
   return (
     <div className="space-y-6">
@@ -144,7 +139,7 @@ export default function OwnersManager({ owners, properties, onUpdate }: OwnersMa
                   value={formData.full_name}
                   onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
                   className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
-                  placeholder="Ex: Jean Dupont"
+                  placeholder="Ex: Mehdi EL BERGUI"
                   required
                 />
               </div>
@@ -237,28 +232,31 @@ export default function OwnersManager({ owners, properties, onUpdate }: OwnersMa
         ) : (
           <div className="divide-y divide-slate-200">
             {owners.map((owner) => {
-              const ownerProperties = properties.filter(p => p.owner_id === owner.id);
+              const displayName = getDisplayName(owner);
+              // Gestion sécurisée de la propriété 'properties' qui peut être absente
+              const ownerProperties = (owner as any).properties || [];
 
               return (
                 <div key={owner.id} className="p-6 hover:bg-slate-50 transition group">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-lg">
-                        {owner.full_name.charAt(0).toUpperCase()}
+                        {displayName.charAt(0).toUpperCase()}
                       </div>
                       <div>
                         <h3 className="text-lg font-semibold text-slate-800">
-                          {owner.full_name}
+                          {displayName}
                         </h3>
                         <div className="flex items-center gap-4 mt-1 text-sm text-slate-500">
                           <div className="flex items-center">
                             <Mail className="w-3.5 h-3.5 mr-1.5" />
                             {owner.email}
                           </div>
-                          {owner.phone && (
+                          {/* Affichage du téléphone s'il existe (note: votre table SQL ne semble pas avoir 'phone') */}
+                          {(owner as any).phone && (
                             <div className="flex items-center">
                               <Phone className="w-3.5 h-3.5 mr-1.5" />
-                              {owner.phone}
+                              {(owner as any).phone}
                             </div>
                           )}
                         </div>
@@ -266,26 +264,10 @@ export default function OwnersManager({ owners, properties, onUpdate }: OwnersMa
                     </div>
                     <div className="text-right">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                        {ownerProperties.length} logement{ownerProperties.length > 1 ? 's' : ''}
+                        {ownerProperties.length > 0 ? `${ownerProperties.length} logement(s)` : 'Nouveau'}
                       </span>
                     </div>
                   </div>
-
-                  {ownerProperties.length > 0 && (
-                    <div className="ml-16 mt-3">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                        {ownerProperties.map((property) => (
-                          <div key={property.id} className="bg-white border border-slate-200 rounded-lg p-3 text-sm hover:border-emerald-300 transition-colors shadow-sm">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Home className="w-3.5 h-3.5 text-slate-400" />
-                              <span className="font-medium text-slate-700 truncate">{property.name}</span>
-                            </div>
-                            <p className="text-xs text-slate-500 pl-5.5 truncate">{property.address}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               );
             })}
